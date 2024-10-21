@@ -133,7 +133,7 @@ class CIFAR10DataModule(LightningDataModule):
     def val_dataloader(self) -> DataLoader:
         valid_loader = DataLoader(self.ds_cifar10_valid,
                                   batch_size=self.batch_size,
-                                  shuffle=self.shuffle,
+                                  shuffle=False,
                                   num_workers=self.num_workers,
                                   pin_memory=self.pin_memory)
         return valid_loader
@@ -141,7 +141,7 @@ class CIFAR10DataModule(LightningDataModule):
     def test_dataloader(self) -> DataLoader:
         test_loader = DataLoader(self.ds_cifar10_test,
                                  batch_size=self.batch_size,
-                                 shuffle=self.shuffle,
+                                 shuffle=False,
                                  num_workers=self.num_workers,
                                  pin_memory=self.pin_memory)
         return test_loader
