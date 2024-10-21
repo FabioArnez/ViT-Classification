@@ -1,7 +1,8 @@
 #_target_: pytorch_lightning.Trainer
 
 # Number of devices. If cpu write gpus=1
-gpus: -1
+accelerator: 'mps' # ['auto', 'cpu', 'gpu', 'mps', 'tpu']
+devices: 'auto'  # ['auto', -1]
 progress_bar_refresh_rate: 10
 log_every_n_step: 400
 distributed_strategy: 'ddp'
