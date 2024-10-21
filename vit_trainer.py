@@ -33,7 +33,8 @@ def main(cfg: DictConfig) -> None:
     loss_type = cfg.model.loss_fn
     rich_progbar = cfg.rich_progbar
     slurm_training = cfg.slurm
-    gpus_nro = cfg.trainer.gpus
+    accelerator_device = cfg.trainer.accelerator
+    devices = cfg.trainer.devices
     # Get current date time to synchronize pl logs and mlflow
     current_date_time = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
 
@@ -46,7 +47,8 @@ def main(cfg: DictConfig) -> None:
     ic(loss_type)
     ic(random_seed_everything)
     ic(slurm_training)
-    ic(gpus_nro)
+    ic(accelerator_device)
+    ic(devices)
     print('=' * 60)
     print(' ')
 
@@ -112,8 +114,8 @@ def main(cfg: DictConfig) -> None:
 
     model_trainer = pl.Trainer(logger=mlf_logger,
                                log_every_n_steps=100,
-                               accelerator='auto',
-                               devices="auto",
+                               accelerator=cfg.trainer.accelerator,
+                               devices=cfg.trainer.devices,
                                max_epochs=cfg.model.epochs,
                                callbacks=[progress_bar,
                                           lr_monitor,
