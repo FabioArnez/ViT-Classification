@@ -1,0 +1,19 @@
+# IDE configurations
+.idea
+.vscode
+!.vscode/settings.json
+!.vscode/extensions.json
+
+# Byte-compiled / optimized / DLL files
+__pycache__/
+
+# Python
+*.pyc
+
+# Misc
+logs_hydra/
+ml-runs/
+lightning_logs/
+
+# macOS
+.DS_Store
