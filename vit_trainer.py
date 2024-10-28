@@ -111,12 +111,12 @@ def main(cfg: DictConfig) -> None:
     ########################################
     mlf_logger = MLFlowLogger(experiment_name=cfg.logger.mlflow.experiment_name,
                               run_name=current_date_time,
-                              tracking_uri="file:./ml-runs")
+                              tracking_uri="file:./mlruns")
 
     # Log parameters with mlflow
     log_params_from_omegaconf_dict(cfg)
     # Setup automatic logging of training with mlflow
-    mlflow.pytorch.autolog(log_every_n_step=cfg.trainer.log_every_n_step)
+    mlflow.pytorch.autolog(checkpoint_monitor=cfg.callbacks.model_checkpoint.monitor)
 
     model_trainer = pl.Trainer(logger=mlf_logger,
                                log_every_n_steps=100,
