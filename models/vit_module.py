@@ -1,4 +1,4 @@
-from typing import Optional, Callable, Union, List, Any
+from typing import Optional, Callable, Union, List, Dict, Any
 import torch
 import torch.nn as nn
 from torch.nn import functional as F
@@ -7,6 +7,7 @@ import pytorch_lightning as pl
 import torchmetrics
 from torch.optim.lr_scheduler import CosineAnnealingLR
 from .vit_model import VisionTransformer
+from datetime import datetime, date
 
 
 class ViTConfigExtended():
@@ -63,7 +64,8 @@ class VisionTransformerModule(pl.LightningModule):
         self.test_acc = torchmetrics.Accuracy(task="multiclass",
                                               num_classes=self.config.num_classes)
         self.loss_fn = self.get_loss_fn(self.config.loss_fn)
-        self.save_hyperparameters()
+        self.module_parameters = object_to_dict(self.config)
+        self.save_hyperparameters(self.module_parameters)
 
     def get_loss_fn(self, loss_type) -> Any:
         if loss_type == "nll":
@@ -115,3 +117,19 @@ class VisionTransformerModule(pl.LightningModule):
     def test_step(self, batch, batch_idx):
         # return super().test_step(*args, **kwargs)
         pass
+
+
+def object_to_dict(obj: object) -> Dict[str, Any]:
+    """Convert a class object to a dictionary, handling nested objects and special types."""
+    if isinstance(obj, (str, int, float, bool, type(None))):
+        return obj
+    elif isinstance(obj, (datetime, date)):
+        return obj.isoformat()
+    elif isinstance(obj, (list, tuple)):
+        return [object_to_dict(item) for item in obj]
+    elif isinstance(obj, dict):
+        return {key: object_to_dict(value) for key, value in obj.items()}
+    elif hasattr(obj, '__dict__'):
+        return object_to_dict(obj.__dict__)
+    else:
+        return str(obj)
