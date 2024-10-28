@@ -13,6 +13,7 @@ __pycache__/
 # Misc
 logs_hydra/
 ml-runs/
+mlruns/
 lightning_logs/
 
 # macOS
