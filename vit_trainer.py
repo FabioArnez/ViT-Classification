@@ -7,6 +7,7 @@ from pytorch_lightning.callbacks import RichProgressBar
 from pytorch_lightning.callbacks.progress.rich_progress import RichProgressBarTheme
 from pytorch_lightning.callbacks import LearningRateMonitor
 from pytorch_lightning.loggers import MLFlowLogger
+import mlflow
 from datasets import CIFAR10DataModule
 from models import ViTConfigExtended
 from models import VisionTransformerModule
@@ -112,6 +113,11 @@ def main(cfg: DictConfig) -> None:
                               run_name=current_date_time,
                               tracking_uri="file:./ml-runs")
 
+    # Log parameters with mlflow
+    log_params_from_omegaconf_dict(cfg)
+    # Setup automatic logging of training with mlflow
+    mlflow.pytorch.autolog(log_every_n_step=cfg.trainer.log_every_n_step)
+
     model_trainer = pl.Trainer(logger=mlf_logger,
                                log_every_n_steps=100,
                                accelerator=cfg.trainer.accelerator,
@@ -120,7 +126,7 @@ def main(cfg: DictConfig) -> None:
                                callbacks=[progress_bar,
                                           lr_monitor,
                                           checkpoint_callback])
-
+            
     # Fit Trainer
     model_trainer.fit(model=model_module, datamodule=data_module)  # fit a model!
 
