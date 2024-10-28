@@ -21,6 +21,7 @@ class CIFAR10DataModule(LightningDataModule):
                  num_workers: int = 10,
                  seed: int = 10,
                  pin_memory: bool = True,
+                 persistent_workers: bool = True,
                  shuffle: bool = True,
                  drop_last: bool = False,
                  transforms_type: str = 'default',
@@ -39,6 +40,7 @@ class CIFAR10DataModule(LightningDataModule):
         self.num_workers = num_workers
         self.seed = seed
         self.pin_memory = pin_memory
+        self.persistent_workers = persistent_workers
         self.shuffle = shuffle
         self.drop_last = drop_last
         self.transforms_type = transforms_type
@@ -126,7 +128,8 @@ class CIFAR10DataModule(LightningDataModule):
                                   batch_size=self.batch_size,
                                   shuffle=self.shuffle,
                                   num_workers=self.num_workers,
-                                  pin_memory=self.pin_memory)
+                                  pin_memory=self.pin_memory,
+                                  persistent_workers=self.persistent_workers)
 
         return train_loader
     
@@ -135,7 +138,8 @@ class CIFAR10DataModule(LightningDataModule):
                                   batch_size=self.batch_size,
                                   shuffle=False,
                                   num_workers=self.num_workers,
-                                  pin_memory=self.pin_memory)
+                                  pin_memory=self.pin_memory,
+                                  persistent_workers=self.persistent_workers)
         return valid_loader
 
     def test_dataloader(self) -> DataLoader:
@@ -143,7 +147,8 @@ class CIFAR10DataModule(LightningDataModule):
                                  batch_size=self.batch_size,
                                  shuffle=False,
                                  num_workers=self.num_workers,
-                                 pin_memory=self.pin_memory)
+                                 pin_memory=self.pin_memory,
+                                 persistent_workers=self.persistent_workers)
         return test_loader
 
     def _get_default_transforms(self, split):
