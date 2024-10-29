@@ -9,11 +9,14 @@ hidden_activation: 'gelu'
 intermediate_size: 3072
 hidden_dropout_prob: 0.0
 attention_probs_dropout_prob: 0.0
-num_classes: 1000
+num_classes: 10
 initializer_range: 0.02
 layer_norm_eps: 1e-12
 is_encoder_decoder: False
 optimizer_lr: 1e-4
 optimizer_weight_decay: 1e-5
 loss_fn: 'cross_entropy'  #  'cross_entropy'  or 'focal'
-epochs: 300
+lr_scheduler:
+    cosine_anneal:
+        T_max: ${trainer.epochs}
+        eta_min: 1e-5
