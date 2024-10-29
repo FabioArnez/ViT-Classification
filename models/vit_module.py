@@ -48,24 +48,21 @@ class ViTConfigExtended():
         if model_config.loss_fn not in ['nll', 'cross_entropy', 'focal', 'custom']:
             raise ValueError(f'`loss_fn` value is not supported. Got "{model_config.loss_fn}" value.')
         self.loss_fn = model_config.loss_fn
-        
-        self.max_nro_epochs = model_config.epochs
-
 
 class VisionTransformerModule(pl.LightningModule):
     def __init__(self, config=None):
         super().__init__()
         self.config = config
-        self.model = VisionTransformer(self.config)
+        vit_config = ViTConfigExtended(model_config=self.config.model)
+        self.model = VisionTransformer(vit_config)
         self.train_acc = torchmetrics.Accuracy(task="multiclass",
-                                               num_classes=self.config.num_classes)
+                                               num_classes=self.config.model.num_classes)
         self.val_acc = torchmetrics.Accuracy(task="multiclass",
-                                             num_classes=self.config.num_classes)
+                                             num_classes=self.config.model.num_classes)
         self.test_acc = torchmetrics.Accuracy(task="multiclass",
-                                              num_classes=self.config.num_classes)
-        self.loss_fn = self.get_loss_fn(self.config.loss_fn)
-        self.module_parameters = object_to_dict(self.config)
-        self.save_hyperparameters(self.module_parameters)
+                                              num_classes=self.config.model.num_classes)
+        self.loss_fn = self.get_loss_fn(self.config.model.loss_fn)
+        self.save_hyperparameters()
 
     def get_loss_fn(self, loss_type) -> Any:
         if loss_type == "nll":
@@ -81,13 +78,15 @@ class VisionTransformerModule(pl.LightningModule):
 
     def configure_optimizers(self):
         optimizer = torch.optim.Adam(self.model.parameters(),  # specify your model (neural network) parameters (weights)
-                                     lr=self.config.optimizer_lr,  # learning rate
-                                     weight_decay=self.config.optimizer_weight_decay,  # L2 penalty regularizer
+                                     lr=self.config.model.optimizer_lr,  # learning rate
+                                     weight_decay=self.config.model.optimizer_weight_decay,  # L2 penalty regularizer
                                      eps=1e-7)  # adds numerical numerical stability (avoids division by 0)
         lr_scheduler = {"scheduler": CosineAnnealingLR(optimizer,
-                                                       T_max=self.config.max_nro_epochs,
-                                                       eta_min=1e-5)}
-
+                                            T_max=self.config.model.lr_scheduler.cosine_anneal.T_max,
+                                            eta_min=self.config.model.lr_scheduler.cosine_anneal.eta_min)}
+        # lr_scheduler = {"scheduler": CosineAnnealingLR(optimizer,
+        #                                                T_max=400,
+        #                                                eta_min=1e-5)}
         return [optimizer], [lr_scheduler]
     
     def training_step(self, batch, batch_idx):

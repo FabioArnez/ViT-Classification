@@ -3,7 +3,8 @@
 # Number of devices. If cpu write gpus=1
 accelerator: 'mps' # ['auto', 'cpu', 'gpu', 'mps', 'tpu']
 devices: 'auto'  # ['auto', -1]
+epochs: 400
 progress_bar_refresh_rate: 10
-log_every_n_step: 400
+log_every_n_steps: 400
 distributed_strategy: 'ddp'
 slurm_auto_requeue: False

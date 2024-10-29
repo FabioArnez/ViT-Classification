@@ -27,7 +27,7 @@ def main(cfg: DictConfig) -> None:
     #      Get Args     #
     #####################
     model_type = cfg.model.model_type
-    max_nro_epochs = cfg.model.epochs
+    max_nro_epochs = cfg.trainer.epochs
     batch_size = cfg.datamodule.batch_size
     random_seed_everything = cfg.seed
     dataset_path = cfg.data_dir
@@ -101,32 +101,27 @@ def main(cfg: DictConfig) -> None:
     #############################
     #      Get Model Module     #
     #############################
-    model_config = cfg.model
-    ic(model_config)
-    vit_config = ViTConfigExtended(model_config=model_config)
-    model_module = VisionTransformerModule(config=vit_config)
+    model_module = VisionTransformerModule(config=cfg)
 
     ########################################
     #      Start Module/Model Training     #
     ########################################
     mlf_logger = MLFlowLogger(experiment_name=cfg.logger.mlflow.experiment_name,
                               run_name=current_date_time,
-                              tracking_uri="file:./mlruns")
+                              tracking_uri=cfg.logger.mlflow.server_uri)
 
+    model_trainer = pl.Trainer(logger=mlf_logger,
+                               accelerator=cfg.trainer.accelerator,
+                               devices=cfg.trainer.devices,
+                               max_epochs=cfg.trainer.epochs,
+                               callbacks=[progress_bar,
+                                          lr_monitor,
+                                          checkpoint_callback])
     # Log parameters with mlflow
     log_params_from_omegaconf_dict(cfg)
     # Setup automatic logging of training with mlflow
     mlflow.pytorch.autolog(checkpoint_monitor=cfg.callbacks.model_checkpoint.monitor)
 
-    model_trainer = pl.Trainer(logger=mlf_logger,
-                               log_every_n_steps=100,
-                               accelerator=cfg.trainer.accelerator,
-                               devices=cfg.trainer.devices,
-                               max_epochs=cfg.model.epochs,
-                               callbacks=[progress_bar,
-                                          lr_monitor,
-                                          checkpoint_callback])
-            
     # Fit Trainer
     model_trainer.fit(model=model_module, datamodule=data_module)  # fit a model!
 
