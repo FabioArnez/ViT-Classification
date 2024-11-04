@@ -61,10 +61,10 @@ class VisionTransformerModule(pl.LightningModule):
                                              num_classes=self.config.model.num_classes)
         self.test_acc = torchmetrics.Accuracy(task="multiclass",
                                               num_classes=self.config.model.num_classes)
-        self.loss_fn = self.get_loss_fn(self.config.model.loss_fn)
+        self.loss_fn = self._get_loss_fn(self.config.model.loss_fn)
         self.save_hyperparameters()
 
-    def get_loss_fn(self, loss_type) -> Any:
+    def _get_loss_fn(self, loss_type) -> Any:
         if loss_type == "nll":
             loss_fn = nn.NLLLoss(reduction='mean')
         elif loss_type == "cross_entropy":
