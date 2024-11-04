@@ -77,10 +77,13 @@ class CIFAR10DataModule(LightningDataModule):
                                                   train=True,
                                                   transform=self.train_transforms)
             self.num_classes = len(self.ds_cifar10_train_valid.classes)
-            self.ds_cifar10_train = self._split_dataset(self.ds_cifar10_train_valid,
-                                                        train=True)
-            self.ds_cifar10_valid = self._split_dataset(self.ds_cifar10_train_valid,
-                                                        train=False)
+
+            self.ds_cifar10_train, self.ds_cifar10_valid = self._split_dataset(self.ds_cifar10_train_valid)
+
+            # self.ds_cifar10_train = self._split_dataset(self.ds_cifar10_train_valid,
+            #                                             train=True)
+            # self.ds_cifar10_valid = self._split_dataset(self.ds_cifar10_train_valid,
+            #                                             train=False)
         # elif stage == 'validate':
         #     self.ds_cifar10_train_valid = CIFAR10(root=self.data_dir,
         #                                           train=True,
@@ -96,18 +99,15 @@ class CIFAR10DataModule(LightningDataModule):
         else: # predict stage
             pass
 
-
-    def _split_dataset(self, dataset: Dataset, train: bool = True) -> Dataset:
+    def _split_dataset(self, dataset: Dataset) -> Dataset:
         """Splits the dataset into train and validation set."""
         len_dataset = len(dataset)
         splits = self._get_splits(len_dataset)
         dataset_train, dataset_val = random_split(dataset,
                                                   splits,
                                                   generator=torch.Generator().manual_seed(self.seed))
-        if train:
-            return dataset_train
-        else:
-            return dataset_val
+        
+        return dataset_train, dataset_val
 
     def _get_splits(self, len_dataset: int) -> List[int]:
         """Computes split lengths for train and validation set."""
@@ -175,10 +175,14 @@ class CIFAR10DataModule(LightningDataModule):
                              A.ColorJitter(brightness=0.4,
                                            contrast=0.4,
                                            saturation=0.4,
-                                           hue=0.0),
+                                           hue=0.0,
+                                           p=1.0),
                              A.ShiftScaleRotate(shift_limit=0.0625,
                                                 scale_limit=0.50,
-                                                rotate_limit=30),
+                                                rotate_limit=30,
+                                                p=1.0),
+                            A.VerticalFlip(p=1.0),
+                            A.HorizontalFlip(p=1.0),
                     ], p=0.5),
                     A.Normalize(mean=self.norm_mean,
                                 std=self.norm_std),

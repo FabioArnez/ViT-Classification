@@ -19,4 +19,4 @@ loss_fn: 'cross_entropy'  #  'cross_entropy'  or 'focal'
 lr_scheduler:
     cosine_anneal:
         T_max: ${trainer.epochs}
-        eta_min: 1e-5
+        eta_min: 8e-5
