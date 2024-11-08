@@ -114,8 +114,15 @@ class VisionTransformerModule(pl.LightningModule):
         return valid_loss
 
     def test_step(self, batch, batch_idx):
-        # return super().test_step(*args, **kwargs)
-        pass
+        sample, label = batch
+        pred = self.model(sample)
+        test_loss = self.loss_fn(pred, label)
+        test_accuracy = self.test_acc(pred, label)
+        
+        self.log_dict({"Test loss": test_loss,
+                       "Test accuracy": test_accuracy},
+                      on_step=False, on_epoch=True, prog_bar=True)   
+        return test_loss
 
 
 def object_to_dict(obj: object) -> Dict[str, Any]:
