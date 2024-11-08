@@ -122,8 +122,7 @@ class VisionTransformerModule(pl.LightningModule):
         self.log_dict({"Test loss": test_loss,
                        "Test accuracy": test_accuracy},
                       on_step=False, on_epoch=True, prog_bar=True)   
-        # return super().test_step(*args, **kwargs)
-        return test_accuracy
+        return test_loss
 
 
 def object_to_dict(obj: object) -> Dict[str, Any]:
