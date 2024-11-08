@@ -117,7 +117,7 @@ class VisionTransformerModule(pl.LightningModule):
         sample, label = batch
         pred = self.model(sample)
         test_loss = self.loss_fn(pred, label)
-        test_accuracy = self.val_acc(pred, label)
+        test_accuracy = self.test_acc(pred, label)
         
         self.log_dict({"Test loss": test_loss,
                        "Test accuracy": test_accuracy},
