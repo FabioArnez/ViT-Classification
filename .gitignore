@@ -10,6 +10,8 @@ __pycache__/
 # Python
 *.pyc
 
+# PyTorch
+*.pth
 # Misc
 logs_hydra/
 ml-runs/
