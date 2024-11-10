@@ -41,11 +41,12 @@ To this end, we recommend coping the script `vit.py` in the local project. The m
 
 Add functionality to load pre-trained weights (ImageNet) to `vit_module.py`:
 
-Code to load weights:
+Useful links and code to load weights:
 - https://github.com/lucidrains/vit-pytorch/issues/239
 - https://github.com/liyiersan/MSA/blob/22243186133369941bb78bbd93e6e2cd04317f66/models/vit.py#L133-L211
 - https://github.com/Sebastian-X/vit-pytorch-with-pretrained-weights/tree/master/tools
 - https://github.com/Sebastian-X/vit-pytorch-with-pretrained-weights/blob/master/utils/utils.py#L44
+
 links to weights:
 - https://github.com/huggingface/pytorch-image-models/releases?page=7
 - https://github.com/huggingface/pytorch-image-models/releases/tag/v0.1-vitjx
