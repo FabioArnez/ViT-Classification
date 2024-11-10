@@ -8,6 +8,7 @@ import torchmetrics
 from torch.optim.lr_scheduler import CosineAnnealingLR
 from .vit_model import VisionTransformer
 from datetime import datetime, date
+import os
 
 
 class ViTConfigExtended():
@@ -36,6 +37,7 @@ class ViTConfigExtended():
         self.hidden_act = model_config.hidden_activation
         self.hidden_dropout_prob = model_config.hidden_dropout_prob
         self.attention_probs_dropout_prob = model_config.attention_probs_dropout_prob
+        self.qkv_bias = model_config.qkv_bias
         self.initializer_range = model_config.initializer_range
         self.layer_norm_eps = model_config.layer_norm_eps
         self.is_encoder_decoder = model_config.is_encoder_decoder
@@ -49,12 +51,17 @@ class ViTConfigExtended():
             raise ValueError(f'`loss_fn` value is not supported. Got "{model_config.loss_fn}" value.')
         self.loss_fn = model_config.loss_fn
 
+        if model_config.pretrained_path is not None:
+            self.pretrained_path = model_config.pretrained_path
+
 class VisionTransformerModule(pl.LightningModule):
     def __init__(self, config=None):
         super().__init__()
         self.config = config
         vit_config = ViTConfigExtended(model_config=self.config.model)
         self.model = VisionTransformer(vit_config)
+        if self.config.model.pretrained_path is not None:
+            self._load_partial_weights()
         self.train_acc = torchmetrics.Accuracy(task="multiclass",
                                                num_classes=self.config.model.num_classes)
         self.val_acc = torchmetrics.Accuracy(task="multiclass",
@@ -63,6 +70,72 @@ class VisionTransformerModule(pl.LightningModule):
                                               num_classes=self.config.model.num_classes)
         self.loss_fn = self._get_loss_fn(self.config.model.loss_fn)
         self.save_hyperparameters()
+
+    def _load_partial_weights(self):
+        ckpt_path = "./pretrained_models/jx_vit_base_patch16_224_in21k-e5005f0a.pth"
+        jax_weight_dict = torch.load(ckpt_path)
+        jax_weight_dict_new = self._update_weight_dict_keys(jax_weight_dict)
+        # for key in jax_weight_dict_new:
+        #     self._save_weight_dict(root_path="./pretrained_models/",
+        #                            file_name="weights_jax_model_dict_new.txt",
+        #                            key=key,
+        #                            shape=jax_weight_dict_new[key].shape)
+        model_dict = self.model.state_dict()
+        state_dict = {k:v for k,v in jax_weight_dict_new.items() if k in model_dict.keys()}
+        model_dict.update(state_dict)
+        self.model.load_state_dict(model_dict)
+
+    def _update_weight_dict_keys(self, jax_dict):
+        new_dict = {}
+
+        def add_item(key, value):
+            key = key.replace('blocks', 'model.transformer.layers')
+            new_dict[key] = value
+            
+        for key, value in jax_dict.items():
+            if key == 'cls_token':
+                key = key.replace('cls_token', 'model.cls_token')
+                new_dict[key] = value
+            elif 'patch_embed.proj' in key:
+                new_key = key.replace('patch_embed.proj', 'model.to_patch_embedding.0')
+                add_item(new_key, value)
+            elif key == 'pos_embed':
+                key = key.replace('pos_embed', 'model.pos_embedding')
+                new_dict[key] = value
+            elif key == 'norm.weight':
+                key = key.replace('norm.weight', 'model.transformer.norm.weight')
+                new_dict[key] = value
+            elif key == 'norm.bias':
+                key = key.replace('norm.bias', 'model.transformer.norm.bias')
+                new_dict[key] = value
+            
+            elif 'norm1' in key:
+                new_key = key.replace('norm1', '0.norm')
+                add_item(new_key, value)
+            elif 'attn.qkv' in key:
+                new_key = key.replace('attn.qkv', '0.to_qkv')
+                add_item(new_key, value)
+            elif 'attn.proj' in key:
+                new_key = key.replace('attn.proj', '0.to_out.0')
+                add_item(new_key, value)
+            elif 'norm2' in key:
+                new_key = key.replace('norm2', '1.net.0')
+                add_item(new_key, value)
+            elif 'mlp.fc1' in key:
+                new_key = key.replace('mlp.fc1', '1.net.1')
+                add_item(new_key, value)
+            elif 'mlp.fc2' in key:
+                new_key = key.replace('mlp.fc2', '1.net.4')
+                add_item(new_key, value)
+
+        return new_dict
+    
+    def _save_weight_dict(self, root_path, file_name, key, shape):
+        file_path = os.path.join(root_path, file_name)
+        fo = open(file_path, "a")
+        string = key + '\t' + str(shape) + '\n'
+        fo.write(string)
+        fo.close()
 
     def _get_loss_fn(self, loss_type) -> Any:
         if loss_type == "nll":
@@ -84,9 +157,7 @@ class VisionTransformerModule(pl.LightningModule):
         lr_scheduler = {"scheduler": CosineAnnealingLR(optimizer,
                                             T_max=self.config.model.lr_scheduler.cosine_anneal.T_max,
                                             eta_min=self.config.model.lr_scheduler.cosine_anneal.eta_min)}
-        # lr_scheduler = {"scheduler": CosineAnnealingLR(optimizer,
-        #                                                T_max=400,
-        #                                                eta_min=1e-5)}
+        
         return [optimizer], [lr_scheduler]
     
     def training_step(self, batch, batch_idx):
