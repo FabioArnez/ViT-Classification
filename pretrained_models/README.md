@@ -42,42 +42,42 @@ links to weights:
 - https://github.com/huggingface/pytorch-image-models/releases/tag/v0.1-vitjx
 
 ```
-load the jax pretrained weights from timm, note that we remove many unnecessary components (e.g., mlp_head) 
+Load the jax->PyTorch(.pth) pretrained weights from timm, note that we remove many unnecessary components (e.g., mlp_head) 
         
-weights can be downloaded from here: https://github.com/huggingface/pytorch-image-models/releases/tag/v0.1-vitjx
-        you can download various pretriained weights and adjust your codes to fit them
+Weights can be downloaded from here: https://github.com/huggingface/pytorch-image-models/releases/tag/v0.1-vitjx
+    
+you can download various pretriained weights and adjust your codes to fit them
+ideas from https://github.com/Sebastian-X/vit-pytorch-with-pretrained-weights/blob/master/tools/trans_weight.py
 
-  ideas from https://github.com/Sebastian-X/vit-pytorch-with-pretrained-weights/blob/master/tools/trans_weight.py
+Weights mapping is as follows:
+                    -----------Model Parameters------------
+    timm_jax_vit_base                           self
 
-        weights mapping as follows:
-                        -----------Model Parameters------------
-        timm_jax_vit_base                           self
+    pos_embed                       pos_embedding
+    patch_embed.proj.weight         to_patch_embedding.0.weights
+    patch_embed.proj.bias           to_patch_embedding.0.bias
+    cls_token                       cls_token
+    norm.weight                     model.transformer.norm.weight
+    norm.bias                       model.transformer.norm.bias
 
-        pos_embed                            pos_embedding
-        patch_embed.proj.weight              to_patch_embedding.0.weights
-        patch_embed.proj.bias                to_patch_embedding.0.bias
-        cls_token                            cls_token
-        norm.weight                          transformer.norm.weight
-        norm.bias                            transformer.norm.bias
+                    -----------Attention Layer-------------
+    blocks.0.norm1.weight       model.transformer.layers.0.0.norm.weight
+    blocks.0.norm1.bias         model.transformer.layers.0.0.norm.bias
+    blocks.0.attn.qkv.weight    model.transformer.layers.0.0.to_qkv.weight
+    blocks.0.attn.qkv.bias      model.transformer.layers.0.0.to_qkv.bias
+    blocks.0.attn.proj.weight   model.transformer.layers.0.0.to_out.0.weight
+    blocks.0.attn.proj.bias     model.transformer.layers.0.0.to_out.0.bias
 
-                        -----------Attention Layer-------------
-        blocks.0.norm1.weight            transformer.layers.0.0.norm.weight
-        blocks.0.norm1.bias              transformer.layers.0.0.norm.bias
-        blocks.0.attn.qkv.weight         transformer.layers.0.0.to_qkv.weight
-        blocks.0.attn.qkv.bias           transformer.layers.0.0.to_qkv.bias
-        blocks.0.attn.proj.weight        transformer.layers.0.0.to_out.0.weight
-        blocks.0.attn.proj.bias          transformer.layers.0.0.to_out.0.bias
-        
-                        -----------MLP Layer-------------
-        blocks.0.norm2.weight            transformer.layers.0.1.net.0.weight
-        blocks.0.norm2.bias              transformer.layers.0.1.net.0.bias
-        blocks.0.mlp.fc1.weight          transformer.layers.0.1.net.1.weight
-        blocks.0.mlp.fc1.bias            transformer.layers.0.1.net.1.bias
-        blocks.0.mlp.fc2.weight          transformer.layers.0.1.net.4.weight
-        blocks.0.mlp.fc2.bias            transformer.layers.0.1.net.4.bias
-                .                                          .
-                .                                          .
-                .                                          .
+                    -----------MLP Layer-------------
+    blocks.0.norm2.weight       model.transformer.layers.0.1.net.0.weight
+    blocks.0.norm2.bias         model.transformer.layers.0.1.net.0.bias
+    blocks.0.mlp.fc1.weight     model.transformer.layers.0.1.net.1.weight
+    blocks.0.mlp.fc1.bias       model.transformer.layers.0.1.net.1.bias
+    blocks.0.mlp.fc2.weight     model.transformer.layers.0.1.net.4.weight
+    blocks.0.mlp.fc2.bias       model.transformer.layers.0.1.net.4.bias
+            .                                          .
+            .                                          .
+            .                                          .
         """
 ```
 
