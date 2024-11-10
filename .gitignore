@@ -17,6 +17,7 @@ logs_hydra/
 ml-runs/
 mlruns/
 lightning_logs/
+pretrained_models/*.txt
 
 # macOS
 .DS_Store
