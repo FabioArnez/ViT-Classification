@@ -7,7 +7,7 @@ If we use the `vit-pytorch` library additional modifications are needed to prope
 
 ## Modifications in the `vit.py` script
 To properly load the parameters of a ViT pre-trained model into a `vit-pytorch` ViT DNN, we need to perform two modifications in the `vit.py`.
-To this end, we recommend coping the script `vit.py` in the local project. The modifications are the following:
+To this end, we recommend copying the script `vit.py` in the local project. The modifications are the following:
 
 1. Add the `qkv_bias` parameter in the Attention class and enable the use of the parameters through the `ViT` class.
 2. In the `ViT` class use `nn.Conv2d` for the `to_patch_embedding` layer:
