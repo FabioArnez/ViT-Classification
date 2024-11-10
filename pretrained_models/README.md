@@ -9,7 +9,7 @@ If we use the `vit-pytorch` library additional modifications are needed to prope
 To properly load the parameters of a ViT pre-trained model into a `vit-pytorch` ViT DNN, we need to perform two modifications in the `vit.py`.
 To this end, we recommend coping the script `vit.py` in the local project. The modifications are the following:
 
-1. Add `qkv_bias` parameter in the Attention class.
+1. Add the `qkv_bias` parameter in the Attention class and enable the use of the parameters through the `ViT` class.
 2. In the `ViT` class use `nn.Conv2d` for the `to_patch_embedding` layer:
 
     ```python
@@ -18,7 +18,8 @@ To this end, we recommend coping the script `vit.py` in the local project. The m
             nn.Conv2d(channels, dim, kernel_size=patch_size, stride=patch_size)
         )
     ```
-    instead of
+    instead of:
+
     ```python
     self.to_patch_embedding = nn.Sequential(
             Rearrange('b c (h p1) (w p2) -> b (h w) (p1 p2 c)', p1 = patch_height, p2 = patch_width),
@@ -27,6 +28,14 @@ To this end, we recommend coping the script `vit.py` in the local project. The m
             nn.LayerNorm(dim),
         )
     ```
+
+    Then, modify the `forward(self, img)` method to match with the `self.to_patch_embedding` layer modifications.
+    ```python
+    x = self.to_patch_embedding(img) # [B, C, H, W]
+        x = x.flatten(2).transpose(1,2) # [B, N, C]
+        b, n, _ = x.shape
+    ```
+
 
 ## Adding functionality in the `vit_module.py`
 
